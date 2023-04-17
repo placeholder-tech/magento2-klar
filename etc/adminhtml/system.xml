@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © ict. All rights reserved.
+ * https://ict.lv/
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="klar" translate="label" sortOrder="100" showInDefault="1" showInStore="0" showInWebsite="0">
+            <label>Klar</label>
+            <tab>sales</tab>
+            <resource>ICT_Klar::configuration</resource>
+
+            <group id="integration" translate="label" sortOrder="10" showInDefault="1" showInWebsite="0"
+                   showInStore="0">
+                <label>Integration</label>
+
+                <field id="enabled" translate="label" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0"
+                       type="select">
+                    <label>Enabled</label>
+                    <comment><![CDATA[Enable Klar integration.]]></comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+
+                <field id="api_url" translate="label" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0"
+                       type="text">
+                    <label>API URL</label>
+                    <comment><![CDATA[API base URL in following format: https://example.com]]></comment>
+                    <validate>required-entry no-whitespace</validate>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="api_version" translate="label" sortOrder="20" showInDefault="1" showInWebsite="0"
+                       showInStore="0"
+                       type="text">
+                    <label>API Version</label>
+                    <comment><![CDATA[API version (can be found in URL provided in Klar API documentation).]]></comment>
+                    <validate>required-entry no-whitespace</validate>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="api_token" translate="label comment" type="obscure" sortOrder="30" showInDefault="1"
+                       showInWebsite="0" showInStore="0">
+                    <label>API Token</label>
+                    <comment><![CDATA[API authorization (Bearer) token.]]></comment>
+                    <validate>required-entry</validate>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
+                <field id="orders_status" translate="label comment" type="obscure" sortOrder="40" showInDefault="1"
+                       showInWebsite="0" showInStore="0">
+                    <label>Orders Status</label>
+                    <comment><![CDATA[Orders status information.]]></comment>
+                    <frontend_model>ICT\Klar\Block\Adminhtml\System\Config\OrdersStatus</frontend_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

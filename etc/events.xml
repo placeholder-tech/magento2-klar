@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © ict. All rights reserved.
+ * https://ict.lv/
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="sales_order_save_commit_after">
+        <observer name="ICT_Klar::send_order_to_klar_on_save"
+                  instance="ICT\Klar\Observer\SendOrderToKlar"/>
+    </event>
+</config>

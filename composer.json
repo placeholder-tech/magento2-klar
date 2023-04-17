@@ -1,0 +1,21 @@
+{
+  "name": "ltd-iconcept/magento2-klar",
+  "version": "1.0.0",
+  "description": "Klar integration for Magento 2.4.x",
+  "type": "magento2-module",
+  "require": {
+    "magento/framework": "*",
+    "magento/module-sales": "103.0.*"
+  },
+  "license": [
+    "GNU General Public License v3.0"
+  ],
+  "autoload": {
+    "files": [
+      "registration.php"
+    ],
+    "psr-4": {
+      "ICT\\Klar\\": ""
+    }
+  }
+}

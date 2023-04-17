@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © ict. All rights reserved.
+ * https://ict.lv/
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="ICT\Klar\Api\Data\ApiInterface" type="ICT\Klar\Model\Api"/>
+    <preference for="ICT\Klar\Api\Data\TaxInterface" type="ICT\Klar\Model\Data\Tax"/>
+    <preference for="ICT\Klar\Api\Data\DiscountInterface" type="ICT\Klar\Model\Data\Discount"/>
+    <preference for="ICT\Klar\Api\Data\LineItemInterface" type="ICT\Klar\Model\Data\LineItem"/>
+    <preference for="ICT\Klar\Api\Data\RefundedLineItemInterface" type="ICT\Klar\Model\Data\RefundedLineItem"/>
+    <preference for="ICT\Klar\Api\Data\OrderInterface" type="ICT\Klar\Model\Data\Order"/>
+    <preference for="ICT\Klar\Api\Data\ShippingInterface" type="ICT\Klar\Model\Data\Shipping"/>
+    <preference for="ICT\Klar\Api\Data\CustomerInterface" type="ICT\Klar\Model\Data\Customer"/>
+    <preference for="ICT\Klar\Api\Data\OptionalIdentifiersInterface" type="ICT\Klar\Model\Data\OptionalIdentifiers"/>
+    <virtualType name="KlarLogger" type="Magento\Framework\Logger\Monolog">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="error" xsi:type="object">ICT\Klar\Logger\Handler\InfoHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <type name="ICT\Klar\Model\Api">
+        <arguments>
+            <argument name="logger" xsi:type="object">KlarLogger</argument>
+        </arguments>
+    </type>
+</config>
