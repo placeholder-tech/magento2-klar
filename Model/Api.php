@@ -202,7 +202,11 @@ class Api implements ApiInterface
      */
     public function getStatus(): array
     {
-        return $this->status();
+        if ($this->config->getIsEnabled()) {
+            return $this->status();
+        }
+
+        return [];
     }
 
     /**

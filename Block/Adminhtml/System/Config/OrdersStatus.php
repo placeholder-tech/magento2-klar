@@ -48,13 +48,15 @@ class OrdersStatus extends ConfigFormField
 
         $status = $this->api->getStatus();
 
-        foreach ($status as $label => $value) {
-            $value = $value ?: 'n/a';
+        if (!empty($status)) {
+            foreach ($status as $label => $value) {
+                $value = $value ?: 'n/a';
 
-            if ($label !== 0) {
-                $html .= "<div><b>{$label}</b>: {$value}</div>";
-            } else {
-                $html .= "<div>{$value}</div>";
+                if ($label !== 0) {
+                    $html .= "<div><b>{$label}</b>: {$value}</div>";
+                } else {
+                    $html .= "<div>{$value}</div>";
+                }
             }
         }
 
