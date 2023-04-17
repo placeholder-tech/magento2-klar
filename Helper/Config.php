@@ -50,9 +50,9 @@ class Config extends AbstractHelper
     /**
      * Get "Klar > Integration > API URL" config value.
      *
-     * @return string
+     * @return string|null
      */
-    public function getApiUrl(): string
+    public function getApiUrl(): ?string
     {
         return $this->scopeConfig->getValue(self::CONFIG_PATH_API_URL);
     }
@@ -60,9 +60,9 @@ class Config extends AbstractHelper
     /**
      * Get "Klar > Integration > API Token" config value.
      *
-     * @return string
+     * @return string|null
      */
-    public function getApiToken(): string
+    public function getApiToken(): ?string
     {
         $tokenEncrypted = $this->scopeConfig->getValue(self::CONFIG_PATH_API_TOKEN);
 
@@ -72,9 +72,9 @@ class Config extends AbstractHelper
     /**
      * Get "Klar > Integration > API Version" config value.
      *
-     * @return string
+     * @return string|null
      */
-    public function getApiVersion(): string
+    public function getApiVersion(): ?string
     {
         return $this->scopeConfig->getValue(self::CONFIG_PATH_API_VERSION);
     }
