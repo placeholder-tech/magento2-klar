@@ -10,17 +10,18 @@ namespace ICT\Klar\Helper;
 use Magento\Config\Model\Config\Backend\Encrypted;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
+use Magento\Store\Model\ScopeInterface;
 
 class Config extends AbstractHelper
 {
+    public const WEIGHT_UNIT_LBS = 'lbs';
+    public const WEIGHT_UNIT_KGS = 'kgs';
     private const CONFIG_PATH_ENABLED = 'klar/integration/enabled';
     private const CONFIG_PATH_API_URL = 'klar/integration/api_url';
     private const CONFIG_PATH_API_VERSION = 'klar/integration/api_version';
     private const CONFIG_PATH_API_TOKEN = 'klar/integration/api_token';
+    private const CONFIG_PATH_WEIGHT_UNIT = 'general/locale/weight_unit';
 
-    /**
-     * @var Encrypted
-     */
     private Encrypted $encrypted;
 
     /**
@@ -77,5 +78,15 @@ class Config extends AbstractHelper
     public function getApiVersion(): ?string
     {
         return $this->scopeConfig->getValue(self::CONFIG_PATH_API_VERSION);
+    }
+
+    /**
+     * Get weight unit.
+     *
+     * @return mixed
+     */
+    public function getWeightUnit()
+    {
+        return $this->scopeConfig->getValue(self::CONFIG_PATH_WEIGHT_UNIT, ScopeInterface::SCOPE_STORE);
     }
 }

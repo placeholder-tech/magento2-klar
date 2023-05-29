@@ -19,11 +19,8 @@ use Magento\Sales\Api\Data\OrderInterface as SalesOrderInterface;
 class ShippingBuilder extends AbstractApiRequestParamsBuilder
 {
     private ShippingInterfaceFactory $shippingFactory;
-
     private DiscountInterfaceFactory $discountFactory;
-
     private TaxesBuilder $taxesBuilder;
-
     private CountryFactory $countryFactory;
 
     /**

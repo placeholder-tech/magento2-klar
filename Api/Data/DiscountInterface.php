@@ -23,6 +23,8 @@ interface DiscountInterface
      * Other constants
      */
     public const DEFAULT_DISCOUNT_TITLE = 'Total Discount';
+    public const SPECIAL_PRICE_DISCOUNT_TITLE = 'Price Reduction';
+    public const SPECIAL_PRICE_DISCOUNT_DESCRIPTOR = 'Price Reduction';
 
     /**
      * Getter for Title.

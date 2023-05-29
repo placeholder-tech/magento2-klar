@@ -41,17 +41,11 @@ class ApiRequestParamsBuilder extends AbstractApiRequestParamsBuilder
     private const SHIPMENT_STATUS_PARTIALLY_SHIPPED = 'partially_shipped';
 
     private OrderInterfaceFactory $orderFactory;
-
     private StoreManagerInterface $storeManager;
-
     private LineItemsBuilder $lineItemsBuilder;
-
     private RefundedLineItemsBuilder $refundedLineItemsBuilder;
-
     private ShippingBuilder $shippingBuilder;
-
     private CustomerBuilder $customerBuilder;
-
     private OptionalIdentifiersInterfaceFactory $optionalIdentifiersFactory;
 
     /**

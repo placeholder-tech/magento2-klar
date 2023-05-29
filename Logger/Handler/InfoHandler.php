@@ -20,7 +20,7 @@ class InfoHandler extends BaseHandler
     protected $loggerType = MonologLogger::INFO;
 
     /**
-     * File name.
+     * Log file name.
      *
      * @var string
      */

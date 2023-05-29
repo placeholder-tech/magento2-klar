@@ -19,15 +19,10 @@ use Psr\Log\LoggerInterface as PsrLoggerInterface;
 class Api implements ApiInterface
 {
     private Curl $curl;
-
     private Config $config;
-
     private PsrLoggerInterface $logger;
-
     private ApiRequestParamsBuilder $paramsBuilder;
-
     private string $requestData;
-
     private SalesOrderRepositoryInterface $salesOrderRepository;
 
     /**
@@ -84,7 +79,7 @@ class Api implements ApiInterface
     public function validateAndSend(SalesOrderInterface $salesOrder): void
     {
         if ($this->config->getIsEnabled() && $this->validate($salesOrder)) {
-            $this->json($salesOrder);
+            // $this->json($salesOrder);
         }
     }
 

@@ -18,7 +18,6 @@ use Magento\Sales\Api\Data\OrderInterface as SalesOrderInterface;
 class CustomerBuilder extends AbstractApiRequestParamsBuilder
 {
     private CustomerInterfaceFactory $customerFactory;
-
     private EncryptorInterface $encryptor;
 
     /**
