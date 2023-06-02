@@ -79,7 +79,7 @@ class Api implements ApiInterface
     public function validateAndSend(SalesOrderInterface $salesOrder): void
     {
         if ($this->config->getIsEnabled() && $this->validate($salesOrder)) {
-            // $this->json($salesOrder);
+            $this->json($salesOrder);
         }
     }
 
