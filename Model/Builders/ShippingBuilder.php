@@ -61,10 +61,10 @@ class ShippingBuilder extends AbstractApiRequestParamsBuilder
             return [];
         }
 
-        $shippingAmount = $salesOrder->getShippingAmount();
+        $shippingAmount = $salesOrder->getShippingInclTax();
         $shippingTaxAmount = $salesOrder->getShippingTaxAmount();
         $shippingDiscountAmount = $salesOrder->getShippingDiscountAmount();
-        $shippingAmountBeforeTaxAndDiscount = $shippingAmount - $shippingTaxAmount - $shippingDiscountAmount;
+        $shippingAmountAfterTaxAndDiscount = $shippingAmount - $shippingTaxAmount - $shippingDiscountAmount;
 
         /* @var ShippingInterface $shipping */
         $shipping = $this->shippingFactory->create();
@@ -76,10 +76,10 @@ class ShippingBuilder extends AbstractApiRequestParamsBuilder
         $shipping->setCurrencyCodeIso3Letter($salesOrder->getOrderCurrencyCode());
         $shipping->setZipOrPostalCode($shippingAddress->getPostcode());
         $shipping->setProviderDescriptor($salesOrder->getShippingDescription());
-        $shipping->setShippingTotalAmountBeforeTaxAndDiscounts($shippingAmountBeforeTaxAndDiscount);
+        $shipping->setShippingTotalAmountBeforeTaxAndDiscounts((float)$shippingAmount);
         $shipping->setDiscounts($this->getDiscounts($salesOrder));
         $shipping->setTaxes($this->getTaxes((int)$salesOrder->getEntityId()));
-        $shipping->setShippingTotalAmountAfterTaxAndDiscounts((float)$shippingAmount);
+        $shipping->setShippingTotalAmountAfterTaxAndDiscounts($shippingAmountAfterTaxAndDiscount);
 
         return $this->snakeToCamel($shipping->toArray());
     }
