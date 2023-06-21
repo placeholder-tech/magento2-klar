@@ -8,54 +8,100 @@ and centralize your data from a variety of sources, including your eCommerce pla
 advertising channels. Once your data is centralized, you can use Klar's powerful reporting and analytics tools to gain
 deep insights into your store's performance, from customer behavior and sales trends to advertising ROI and much more.
 
+## Compatibility
+
+This module has been developed and tested on Magento 2.4.5-p1 using PHP 8.1. It may work with other versions of Magento 2
+and PHP, but we cannot guarantee compatibility. If you encounter any issues with compatibility, please let us know by
+creating an issue on GitHub.
+
 ## Installation
 
 To install the module, follow these steps:
 
-1. Add the GitHub repository as a new repository in your Magento 2 project's `composer.json` file:
+1. Put your Magento 2 store into maintenance mode by running the following command:
 
-    ```
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/ltd-iconcept/magento2-klar"
-        }
-    ]
-    ```
+   ```
+   bin/magento maintenance:enable
+   ```
 
-2. Add the module to your project's `composer.json` file using the `require` command:
+2. Add the GitHub repository as a new repository in your Magento 2 project's `composer.json` file:
 
-    ```
-    composer require ltd-iconcept/magento2-klar:^1.0.0
-    ```
+   ```
+   "repositories": [
+     {
+         "type": "vcs",
+         "url": "https://github.com/ltd-iconcept/magento2-klar"
+     }
+   ]
+   ```
+
+3. Add the module to your project's `composer.json` file using the `require` command:
+
+   ```
+   composer require ltd-iconcept/magento2-klar:^1.0.0
+   ```
 
    The `^1.0.0` indicates that you want to install version 1.0.0 or later.
 
-3. Run the Composer install command:
+4. Run the Composer install command:
 
-    ```
-    composer install
-    ```
+   ```
+   composer install
+   ```
 
-4. Enable the module by running the Magento CLI command:
+5. Enable the module by running the Magento CLI command:
 
-    ```
-    bin/magento module:enable ICT_Klar
-    ```
+   ```
+   bin/magento module:enable ICT_Klar
+   ```
 
-5. Run the setup upgrade command to install the module and its dependencies:
+6. Run the setup upgrade command to install the module and its dependencies:
 
-    ```
-    bin/magento setup:upgrade
-    ```
+   ```
+   bin/magento setup:upgrade
+   ```
 
-6. Clear the Magento cache:
+7. Compile your Magento dependency injection configuration:
 
-    ```
-    bin/magento cache:clean
-    ```
+   ```
+   bin/magento setup:di:compile
+   ```
 
-7. Configure the module as needed.
+8. Deploy your static view files:
+
+   ```
+   bin/magento setup:static-content:deploy
+   ```
+
+9. Clear the Magento cache:
+
+   ```
+   bin/magento cache:clean
+   ```
+
+10. Take your Magento 2 store out of maintenance mode by running the following command:
+
+   ```
+   bin/magento maintenance:disable
+   ```
+
+11. Configure the module as needed.
+
+### Installing updates
+
+1. Update the module using the `update` command:
+
+   ```
+   composer update ltd-iconcept/magento2-klar
+   ```
+
+2. Put your Magento 2 store into maintenance mode by running the following command:
+
+   ```
+   bin/magento maintenance:enable
+   ```
+   
+3. Proceed with installation steps 6. - 10.
 
 ## Configuration
 
@@ -67,6 +113,10 @@ To enable Magento 2 Klar integration in the Magento admin panel, follow these st
 4. Fill in the "API URL", "API Version", and "API Token" fields with the appropriate values. These values will be
    provided to you by Klar.
 5. Save the configuration and clear Magento cache.
+
+### Configuration example:
+
+![Configuration](docs/configuration.png)
 
 ## Usage
 

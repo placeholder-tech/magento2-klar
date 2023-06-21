@@ -11,6 +11,7 @@ use ICT\Klar\Api\Data\TaxInterface;
 use ICT\Klar\Api\Data\TaxInterfaceFactory;
 use ICT\Klar\Model\AbstractApiRequestParamsBuilder;
 use Magento\Framework\Intl\DateTimeFactory;
+use Magento\Sales\Api\Data\OrderItemInterface;
 use Magento\Sales\Model\ResourceModel\Order\Tax\Item as TaxItemResource;
 
 class TaxesBuilder extends AbstractApiRequestParamsBuilder
@@ -19,7 +20,6 @@ class TaxesBuilder extends AbstractApiRequestParamsBuilder
     public const TAXABLE_ITEM_TYPE_SHIPPING = 'shipping';
 
     private TaxItemResource $taxItemResource;
-
     private TaxInterfaceFactory $taxFactory;
 
     /**
@@ -42,24 +42,36 @@ class TaxesBuilder extends AbstractApiRequestParamsBuilder
     /**
      * Get taxes from sales order by type.
      *
-     * @param int $orderId
-     * @param int|null $orderItemId
+     * @param int $salesOrderId
+     * @param OrderItemInterface|null $salesOrderItem
      * @param string $taxableItemType
      *
      * @return array
      */
     public function build(
-        int $orderId,
-        int $orderItemId = null,
+        int $salesOrderId,
+        OrderItemInterface $salesOrderItem = null,
         string $taxableItemType = self::TAXABLE_ITEM_TYPE_PRODUCT
     ): array {
         $taxes = [];
-        $taxItems = $this->taxItemResource->getTaxItemsByOrderId($orderId);
+        $taxItems = $this->taxItemResource->getTaxItemsByOrderId($salesOrderId);
 
         foreach ($taxItems as $taxItem) {
+            $taxRate = (float)($taxItem['tax_percent'] / 100);
+
             if ($taxItem['taxable_item_type'] === self::TAXABLE_ITEM_TYPE_PRODUCT &&
-                (int)$taxItem['item_id'] !== $orderItemId) {
-                continue;
+                $salesOrderItem !== null) {
+                $salesOrderItemId = (int)$salesOrderItem->getId();
+
+                if ((int)$taxItem['item_id'] !== $salesOrderItemId) {
+                    continue;
+                }
+
+                $itemPrice = (float)$salesOrderItem->getPrice();
+                $itemDiscount = (float)$salesOrderItem->getDiscountAmount();
+                $taxAmount = ($itemPrice - $itemDiscount) * $taxRate;
+            } else {
+                $taxAmount = (float)$taxItem['real_amount'];
             }
 
             if ($taxItem['taxable_item_type'] === $taxableItemType) {
@@ -67,8 +79,8 @@ class TaxesBuilder extends AbstractApiRequestParamsBuilder
                 $tax = $this->taxFactory->create();
 
                 $tax->setTitle($taxItem['title']);
-                $tax->setTaxRate((float)$taxItem['tax_percent']);
-                $tax->setTaxAmount((float)$taxItem['real_amount']);
+                $tax->setTaxRate($taxRate);
+                $tax->setTaxAmount($taxAmount);
 
                 $taxes[$taxableItemType][] = $this->snakeToCamel($tax->toArray());
             }

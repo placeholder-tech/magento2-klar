@@ -19,15 +19,10 @@ use Psr\Log\LoggerInterface as PsrLoggerInterface;
 class Api implements ApiInterface
 {
     private Curl $curl;
-
     private Config $config;
-
     private PsrLoggerInterface $logger;
-
     private ApiRequestParamsBuilder $paramsBuilder;
-
     private string $requestData;
-
     private SalesOrderRepositoryInterface $salesOrderRepository;
 
     /**

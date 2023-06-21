@@ -7,12 +7,12 @@ declare(strict_types=1);
 
 namespace ICT\Klar\Model\Builders;
 
-use ICT\Klar\Api\Data\DiscountInterface;
-use ICT\Klar\Api\Data\DiscountInterfaceFactory;
 use ICT\Klar\Api\Data\LineItemInterface;
 use ICT\Klar\Api\Data\LineItemInterfaceFactory;
+use ICT\Klar\Helper\Config;
 use ICT\Klar\Model\AbstractApiRequestParamsBuilder;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
+use Magento\Catalog\Model\Product;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Intl\DateTimeFactory;
 use Magento\Sales\Api\Data\OrderInterface as SalesOrderInterface;
@@ -21,12 +21,10 @@ use Magento\Sales\Api\Data\OrderItemInterface as SalesOrderItemInterface;
 class LineItemsBuilder extends AbstractApiRequestParamsBuilder
 {
     private LineItemInterfaceFactory $lineItemFactory;
-
     private CategoryRepositoryInterface $categoryRepository;
-
-    private DiscountInterfaceFactory $discountFactory;
-
     private TaxesBuilder $taxesBuilder;
+    private Config $config;
+    private LineItemDiscountsBuilder $discountsBuilder;
 
     /**
      * LineItemsBuilder constructor.
@@ -34,21 +32,24 @@ class LineItemsBuilder extends AbstractApiRequestParamsBuilder
      * @param DateTimeFactory $dateTimeFactory
      * @param LineItemInterfaceFactory $lineItemFactory
      * @param CategoryRepositoryInterface $categoryRepository
-     * @param DiscountInterfaceFactory $discountFactory
      * @param TaxesBuilder $taxesBuilder
+     * @param Config $config
+     * @param LineItemDiscountsBuilder $discountsBuilder
      */
     public function __construct(
         DateTimeFactory $dateTimeFactory,
         LineItemInterfaceFactory $lineItemFactory,
         CategoryRepositoryInterface $categoryRepository,
-        DiscountInterfaceFactory $discountFactory,
-        TaxesBuilder $taxesBuilder
+        TaxesBuilder $taxesBuilder,
+        Config $config,
+        LineItemDiscountsBuilder $discountsBuilder
     ) {
         parent::__construct($dateTimeFactory);
         $this->lineItemFactory = $lineItemFactory;
         $this->categoryRepository = $categoryRepository;
-        $this->discountFactory = $discountFactory;
         $this->taxesBuilder = $taxesBuilder;
+        $this->config = $config;
+        $this->discountsBuilder = $discountsBuilder;
     }
 
     /**
@@ -67,10 +68,12 @@ class LineItemsBuilder extends AbstractApiRequestParamsBuilder
             $productVariant = $this->getProductVariant($salesOrderItem);
             $productBrand = false;
             $categoryName = $this->getCategoryName($salesOrderItem);
-            $rowTotal = (float)$salesOrderItem->getRowTotalInclTax();
+            $totalBeforeTaxesAndDiscounts = $salesOrderItem->getBaseOriginalPrice() * $salesOrderItem->getQtyOrdered();
+            $weightInGrams = 0;
 
             if ($product) {
                 $productBrand = $product->getAttributeText('manufacturer');
+                $weightInGrams = $this->getWeightInGrams($product);
             }
 
             /* @var LineItemInterface $lineItem */
@@ -93,14 +96,19 @@ class LineItemsBuilder extends AbstractApiRequestParamsBuilder
                 $lineItem->setProductCollection($categoryName);
             }
 
+            $lineItem->setProductCogs((float)$salesOrderItem->getBaseCost());
+            $lineItem->setProductGmv((float)$salesOrderItem->getBaseOriginalPrice());
+            $lineItem->setProductShippingWeightInGrams($weightInGrams);
             $lineItem->setSku($salesOrderItem->getSku());
             $lineItem->setQuantity((float)$salesOrderItem->getQtyOrdered());
-            $lineItem->setDiscounts($this->getDiscounts($salesOrderItem));
+            $lineItem->setDiscounts($this->discountsBuilder->buildFromSalesOrderItem($salesOrderItem));
             $lineItem->setTaxes(
-                $this->taxesBuilder->build((int)$salesOrderItem->getOrderId(), (int)$salesOrderItem->getId())
+                $this->taxesBuilder->build((int)$salesOrderItem->getOrderId(), $salesOrderItem)
             );
-            $lineItem->setTotalAmountBeforeTaxesAndDiscounts($salesOrderItem->getPrice());
-            $lineItem->setTotalAmountAfterTaxesAndDiscounts($rowTotal ?: 0.0);
+            $lineItem->setTotalAmountBeforeTaxesAndDiscounts($totalBeforeTaxesAndDiscounts);
+
+            $totalAfterTaxesAndDiscounts = $this->calculateTotalAfterTaxesAndDiscounts($lineItem);
+            $lineItem->setTotalAmountAfterTaxesAndDiscounts($totalAfterTaxesAndDiscounts ?: 0.0);
 
             $lineItems[] = $this->snakeToCamel($lineItem->toArray());
         }
@@ -169,26 +177,67 @@ class LineItemsBuilder extends AbstractApiRequestParamsBuilder
     }
 
     /**
-     * Get product discounts.
+     * Get product weight in grams.
      *
-     * @param SalesOrderItemInterface $salesOrderItem
+     * @param Product $product
      *
-     * @return array
+     * @return float
      */
-    private function getDiscounts(SalesOrderItemInterface $salesOrderItem): array
+    private function getWeightInGrams(Product $product): float
     {
-        $discountAmount = (float)$salesOrderItem->getDiscountAmount();
+        $productWeightInKgs = 0.00;
+        $weightUnit = $this->config->getWeightUnit();
+        $productWeight = (float)$product->getWeight();
 
-        if ($discountAmount) {
-            /* @var DiscountInterface $discount */
-            $discount = $this->discountFactory->create();
+        if ($productWeight) {
+            // Convert LBS to KGS if unit is LBS
+            if ($weightUnit === Config::WEIGHT_UNIT_LBS) {
+                $productWeightInKgs = $this->convertLbsToKgs($productWeight);
+            }
 
-            $discount->setTitle(DiscountInterface::DEFAULT_DISCOUNT_TITLE);
-            $discount->setDiscountAmount($discountAmount);
-
-            return [$this->snakeToCamel($discount->toArray())];
+            return $productWeightInKgs * 1000;
         }
 
-        return [];
+        return $productWeightInKgs;
+    }
+
+    /**
+     * Convert lbs to kgs.
+     *
+     * @param float $weightLbs
+     *
+     * @return float
+     */
+    private function convertLbsToKgs(float $weightLbs): float
+    {
+        $conversionFactor = 0.45359237;
+        $weightInKgs = $weightLbs * $conversionFactor;
+
+        return round($weightInKgs, 3);
+    }
+
+    /**
+     * Calculate line item total after taxes and discounts.
+     *
+     * @param LineItemInterface $lineItem
+     *
+     * @return float
+     */
+    private function calculateTotalAfterTaxesAndDiscounts(LineItemInterface $lineItem): float
+    {
+        $taxAmount = 0;
+        $discountAmount = 0;
+        $quantity = $lineItem->getQuantity();
+        $productGmv = $lineItem->getProductGmv() * $quantity;
+
+        foreach ($lineItem->getTaxes() as $lineItemTax) {
+            $taxAmount += $lineItemTax['taxAmount'] * $quantity;
+        }
+
+        foreach ($lineItem->getDiscounts() as $lineItemDiscount) {
+            $discountAmount += $lineItemDiscount['discountAmount'] * $quantity;
+        }
+
+        return $productGmv - $taxAmount - $discountAmount;
     }
 }
