@@ -1,0 +1,36 @@
+<?php
+/**
+ * Copyright © ict. All rights reserved.
+ * https://ict.lv/
+ */
+
+/** @var \ICT\Klar\Block\Adminhtml\System\Config\SyncButton $block */
+/** @var \Magento\Framework\View\Helper\SecureHtmlRenderer $secureRenderer */
+?>
+
+<?php
+$scriptString = <<<script
+require([
+    'jquery',
+], function(jQuery){
+    jQuery('#sync_now').click(function () {
+        new Ajax.Request('{$block->escapeJs($block->getAjaxUrl())}',
+        {
+            onSuccess: successFunc
+        });
+
+        function successFunc(response) {
+            if (200 == response.status) {
+                data = jQuery.parseJSON(response.responseText);
+                if (data.success) {
+                    jQuery('#sync_now>span').html(data.message);
+                }
+            }
+         }
+    });
+});
+script;
+?>
+<?= /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptString, false) ?>
+
+<?= $block->getButtonHtml() ?>

@@ -56,6 +56,14 @@
                     </depends>
                 </field>
 
+                <field id="sync_now" translate="label" type="button" sortOrder="35" showInDefault="1">
+                    <label>Synchronization</label>
+                    <frontend_model>ICT\Klar\Block\Adminhtml\System\Config\SyncButton</frontend_model>
+                    <depends>
+                        <field id="enabled">1</field>
+                    </depends>
+                </field>
+
                 <field id="orders_status" translate="label comment" type="obscure" sortOrder="40" showInDefault="1"
                        showInWebsite="0" showInStore="0">
                     <label>Orders Status</label>

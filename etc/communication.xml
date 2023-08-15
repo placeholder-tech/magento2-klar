@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © ict. All rights reserved.
+ * https://ict.lv/
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Communication/etc/communication.xsd">
+    <topic name="klar.order.synchronization" request="Magento\AsynchronousOperations\Api\Data\OperationInterface">
+        <handler name="klar.order.synchronization.handler" type="ICT\Klar\Queue\OrderQueue" method="process" />
+    </topic>
+</config>

@@ -7,22 +7,23 @@ declare(strict_types=1);
 
 namespace ICT\Klar\Observer;
 
-use ICT\Klar\Api\Data\ApiInterface;
+use ICT\Klar\Queue\OrderPublisher;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 
+use Magento\Sales\Api\Data\OrderInterface;
+
 class SendOrderToKlar implements ObserverInterface
 {
-    private ApiInterface $api;
+    private OrderPublisher $orderPublisher;
 
     /**
-     * SendOrderToKlar constructor.
-     *
-     * @param ApiInterface $api
+     * @param OrderPublisher $orderPublisher
      */
-    public function __construct(ApiInterface $api)
-    {
-        $this->api = $api;
+    public function __construct(
+        OrderPublisher $orderPublisher
+    ) {
+        $this->orderPublisher = $orderPublisher;
     }
 
     /**
@@ -34,14 +35,11 @@ class SendOrderToKlar implements ObserverInterface
      */
     public function execute(Observer $observer): void
     {
+        /** @var OrderInterface $order */
         $order = $observer->getEvent()->getOrder();
 
         if ($order->getId()) {
-            $salesOrder = $this->api->getOrder((int)$order->getId());
-
-            if ($salesOrder) {
-                $this->api->validateAndSend($salesOrder);
-            }
+            $this->orderPublisher->publish([$order->getId()]);
         }
     }
 }

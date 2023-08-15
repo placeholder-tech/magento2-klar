@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © ict. All rights reserved.
+ * https://ict.lv/
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd">
+    <router id="admin">
+        <route id="klar" frontName="klar">
+            <module name="ICT_Klar" before="Magento_Adminhtml" />
+        </route>
+    </router>
+</config>

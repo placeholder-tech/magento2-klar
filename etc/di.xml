@@ -28,4 +28,20 @@
             <argument name="logger" xsi:type="object">KlarLogger</argument>
         </arguments>
     </type>
+
+    <type name="Magento\Framework\Console\CommandListInterface">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="KlarOrder" xsi:type="object">ICT\Klar\Command\Order</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="Magento\MysqlMq\Model\Driver\Queue">
+        <plugin name="queue_reject_plugin"
+                type="ICT\Klar\Plugin\QueueRejectPlugin"/>
+    </type>
+    <type name="Magento\Sales\Model\ResourceModel\Order\Grid\Collection">
+        <plugin name="klar_order_grid_plugin"
+                type="ICT\Klar\Plugin\KlarOrderGridPlugin"/>
+    </type>
 </config>

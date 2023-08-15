@@ -10,11 +10,14 @@ namespace ICT\Klar\Model;
 use Exception;
 use ICT\Klar\Api\Data\ApiInterface;
 use ICT\Klar\Helper\Config;
+use Magento\Framework\Api\FilterBuilder;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\HTTP\Client\Curl;
+use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Sales\Api\Data\OrderInterface as SalesOrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface as SalesOrderRepositoryInterface;
 use Psr\Log\LoggerInterface as PsrLoggerInterface;
+use Magento\Framework\Api\SearchCriteriaBuilder;
 
 class Api implements ApiInterface
 {
@@ -24,6 +27,9 @@ class Api implements ApiInterface
     private ApiRequestParamsBuilder $paramsBuilder;
     private string $requestData;
     private SalesOrderRepositoryInterface $salesOrderRepository;
+    private SearchCriteriaBuilder $searchCriteriaBuilder;
+    private FilterBuilder $filterBuilder;
+    private Json $jsonSerializer;
 
     /**
      * Api constructor.
@@ -33,13 +39,19 @@ class Api implements ApiInterface
      * @param PsrLoggerInterface $logger
      * @param ApiRequestParamsBuilder $paramsBuilder
      * @param SalesOrderRepositoryInterface $salesOrderRepository
+     * @param SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param FilterBuilder $filterBuilder
+     * @param Json $jsonSerializer
      */
     public function __construct(
         Curl $curl,
         Config $config,
         PsrLoggerInterface $logger,
         ApiRequestParamsBuilder $paramsBuilder,
-        SalesOrderRepositoryInterface $salesOrderRepository
+        SalesOrderRepositoryInterface $salesOrderRepository,
+        SearchCriteriaBuilder $searchCriteriaBuilder,
+        FilterBuilder $filterBuilder,
+        Json $jsonSerializer
     ) {
         $this->requestData = '';
         $this->curl = $curl;
@@ -47,55 +59,81 @@ class Api implements ApiInterface
         $this->logger = $logger;
         $this->paramsBuilder = $paramsBuilder;
         $this->salesOrderRepository = $salesOrderRepository;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->filterBuilder = $filterBuilder;
+        $this->jsonSerializer = $jsonSerializer;
     }
 
     /**
-     * Get order by order ID.
+     * Get orders by order IDs.
      *
-     * @param int $orderId
+     * @param int[] $orderIds
      *
-     * @return false|SalesOrderInterface
+     * @return null|SalesOrderInterface[]
+     * @throws NoSuchEntityException
      */
-    public function getOrder(int $orderId)
+    private function getOrders(array $orderIds): ?array
     {
         if ($this->config->getIsEnabled()) {
-            try {
-                return $this->salesOrderRepository->get($orderId);
-            } catch (NoSuchEntityException $e) {
-                return false;
+            $orderIdsFilter = $this->filterBuilder
+                ->setField('entity_id')
+                ->setConditionType('in')
+                ->setValue($orderIds)
+                ->create();
+            $this->searchCriteriaBuilder->addFilters([$orderIdsFilter]);
+            $searchCriteria = $this->searchCriteriaBuilder->create();
+            $searchResults = $this->salesOrderRepository->getList($searchCriteria);
+            $items = $searchResults->getItems();
+            if (count($items) !== count($orderIds)) {
+                throw new NoSuchEntityException(
+                    __('Could not find orders with ids: `%ids`',
+                        [
+                            'ids' => implode(', ', array_diff(array_keys($items), $orderIds))
+                        ]
+                    )
+                );
             }
+            return $items;
+        }
+
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function validateAndSend(array $ids): bool
+    {
+        $salesOrders = $this->getOrders($ids);
+
+        if ($salesOrders && $this->validate($salesOrders)) {
+            return $this->json($salesOrders);
         }
 
         return false;
     }
 
     /**
-     * Validate order and send to Klar.
-     *
-     * @param SalesOrderInterface $salesOrder
-     *
-     * @return void
-     */
-    public function validateAndSend(SalesOrderInterface $salesOrder): void
-    {
-        if ($this->config->getIsEnabled() && $this->validate($salesOrder)) {
-            $this->json($salesOrder);
-        }
-    }
-
-    /**
      * Make order validate request.
      *
-     * @param SalesOrderInterface $salesOrder
+     * @param SalesOrderInterface[] $salesOrders
      *
      * @return bool
      */
-    private function validate(SalesOrderInterface $salesOrder): bool
+    private function validate(array $salesOrders): bool
     {
-        $this->logger->info(__('Validating order "#%1".', $salesOrder->getIncrementId()));
+        $orderIds = implode(', ', array_keys($salesOrders));
+        $this->logger->info(__('Validating orders "#%1".', $orderIds));
+
+        if (count($salesOrders) > self::BATCH_SIZE) {
+            $this->logger->info(
+                __('Batch size must be less or equal %1, %2 provided.', self::BATCH_SIZE, count($salesOrders))
+            );
+            return false;
+        }
 
         if (!$this->requestData) {
-            $this->setRequestData($salesOrder);
+            $this->setRequestData($salesOrders);
         }
 
         $this->getCurlClient()->post(
@@ -104,14 +142,14 @@ class Api implements ApiInterface
         );
 
         if ($this->getCurlClient()->getStatus() === self::STATUS_OK) {
-            return $this->handleSuccess($salesOrder->getIncrementId());
+            return $this->handleSuccess($orderIds);
         }
 
         if ($this->getCurlClient()->getStatus() === self::STATUS_BAD_REQUEST) {
-            return $this->handleError($salesOrder->getIncrementId());
+            return $this->handleError($orderIds);
         }
 
-        $this->logger->info(__('Failed to validate order "#%1".', $salesOrder->getIncrementId()));
+        $this->logger->info(__('Failed to validate orders "#%1".', $orderIds));
 
         return false;
     }
@@ -119,17 +157,19 @@ class Api implements ApiInterface
     /**
      * Set request data.
      *
-     * @param SalesOrderInterface $salesOrder
+     * @param SalesOrderInterface[] $salesOrders
      *
      * @return void
      */
-    private function setRequestData(SalesOrderInterface $salesOrder): void
+    private function setRequestData(array $salesOrders): void
     {
         try {
-            $this->requestData = json_encode(
-                [$this->paramsBuilder->buildFromSalesOrder($salesOrder)],
-                JSON_THROW_ON_ERROR
-            );
+            $items = [];
+            foreach ($salesOrders as $salesOrder) {
+                $items[] = $this->paramsBuilder->buildFromSalesOrder($salesOrder);
+            }
+
+            $this->requestData = $this->jsonSerializer->serialize($items);
         } catch (Exception $e) {
             $this->logger->info(__('Error building params: %1', $e->getMessage()));
         }
@@ -184,16 +224,14 @@ class Api implements ApiInterface
             $baseUrl = $this->config->getApiUrl();
             $version = $this->config->getApiVersion();
 
-            return $baseUrl . '/' . $version . $path;
+            return rtrim($baseUrl, "/") . '/' . $version . $path;
         }
 
         return $this->config->getApiUrl() . $path;
     }
 
     /**
-     * Get Klar orders status.
-     *
-     * @return array
+     * {@inheritDoc}
      */
     public function getStatus(): array
     {
@@ -232,16 +270,16 @@ class Api implements ApiInterface
     /**
      * Handle success.
      *
-     * @param string $incrementId
+     * @param string $orderIds
      *
      * @return bool
      */
-    private function handleSuccess(string $incrementId): bool
+    private function handleSuccess(string $orderIds): bool
     {
         $body = $this->getCurlBody();
 
         if (isset($body['status']) && $body['status'] === self::ORDER_STATUS_VALID) {
-            $this->logger->info(__('Order "#%1" is valid and can be sent to Klar.', $incrementId));
+            $this->logger->info(__('Orders "#%1" is valid and can be sent to Klar.', $orderIds));
 
             return true;
         }
@@ -273,11 +311,11 @@ class Api implements ApiInterface
     /**
      * Handle error.
      *
-     * @param string $incrementId
+     * @param string $orderIds
      *
      * @return bool
      */
-    private function handleError(string $incrementId): bool
+    private function handleError(string $orderIds): bool
     {
         $body = $this->getCurlBody();
 
@@ -286,7 +324,7 @@ class Api implements ApiInterface
                 $this->logger->info($errorMessage);
             }
 
-            $this->logger->info(__('Failed to validate order "#%1":', $incrementId));
+            $this->logger->info(__('Failed to validate orders "#%1":', $orderIds));
 
             return false;
         }
@@ -297,16 +335,18 @@ class Api implements ApiInterface
     /**
      * Make order json request.
      *
-     * @param SalesOrderInterface $salesOrder
+     * @param SalesOrderInterface[] $salesOrders
      *
-     * @return void
+     * @return bool
      */
-    private function json(SalesOrderInterface $salesOrder): void
+    private function json(array $salesOrders): bool
     {
-        $this->logger->info(__('Sending order "#%1".', $salesOrder->getIncrementId()));
+        $result = false;
+        $orderIds = implode(', ', array_keys($salesOrders));
+        $this->logger->info(__('Sending orders "#%1".', $orderIds));
 
         if (!$this->requestData) {
-            $this->setRequestData($salesOrder);
+            $this->setRequestData($salesOrders);
         }
 
         $this->getCurlClient()->post(
@@ -315,9 +355,12 @@ class Api implements ApiInterface
         );
 
         if ($this->getCurlClient()->getStatus() === self::STATUS_OK) {
-            $this->logger->info(__('Order "#%1" successfully sent to Klar.', $salesOrder->getIncrementId()));
+            $this->logger->info(__('Orders "#%1" successfully sent to Klar.', $orderIds));
+            $result = true;
         } else {
-            $this->logger->info(__('Failed to send order "#%1".', $salesOrder->getIncrementId()));
+            $this->logger->info(__('Failed to send orders "#%1".', $orderIds));
         }
+
+        return $result;
     }
 }

@@ -16,15 +16,7 @@ interface ApiInterface
     public const ORDER_STATUS_INVALID = 'INVALID';
     public const STATUS_OK = 201;
     public const STATUS_BAD_REQUEST = 400;
-
-    /**
-     * Get order by order ID.
-     *
-     * @param int $orderId
-     *
-     * @return false|\Magento\Sales\Api\Data\OrderInterface
-     */
-    public function getOrder(int $orderId);
+    public const BATCH_SIZE = 1000;
 
     /**
      * Get Klar orders status.
@@ -34,11 +26,11 @@ interface ApiInterface
     public function getStatus(): array;
 
     /**
-     * Validate order and send to Klar.
+     * Validate orders and send to Klar.
      *
-     * @param \Magento\Sales\Api\Data\OrderInterface $salesOrder
+     * @param int[] $salesOrders
      *
-     * @return void
+     * @return bool
      */
-    public function validateAndSend(\Magento\Sales\Api\Data\OrderInterface $salesOrder): void;
+    public function validateAndSend(array $ids): bool;
 }
