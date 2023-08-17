@@ -55,37 +55,49 @@ To install the module, follow these steps:
    bin/magento module:enable ICT_Klar
    ```
 
-6. Run the setup upgrade command to install the module and its dependencies:
+6. Add following section into `env.php` file:
+```
+'cron_consumers_runner' => [
+    'cron_run' => true,
+    'consumers' => [
+        'klar.order.synchronization'
+    ]
+]
+```
+
+7. Run the setup upgrade command to install the module and its dependencies:
 
    ```
    bin/magento setup:upgrade
    ```
 
-7. Compile your Magento dependency injection configuration:
+8. Compile your Magento dependency injection configuration:
 
    ```
    bin/magento setup:di:compile
    ```
 
-8. Deploy your static view files:
+9. Deploy your static view files:
 
    ```
    bin/magento setup:static-content:deploy
    ```
 
-9. Clear the Magento cache:
+10. Clear the Magento cache:
 
-   ```
-   bin/magento cache:clean
-   ```
+```
+bin/magento cache:clean
+```
 
-10. Take your Magento 2 store out of maintenance mode by running the following command:
+11. Take your Magento 2 store out of maintenance mode by running the following command:
 
-   ```
-   bin/magento maintenance:disable
-   ```
+```
+bin/magento maintenance:disable
+```
 
-11. Configure the module as needed.
+12. Make sure that cron configured properly (ref. [Magento 2 DevDocs](https://devdocs.magento.com/guides/v2.3/config-guide/cli/config-cli-subcommands-cron.html))
+
+13. Configure the module as needed.
 
 ### Installing updates
 
@@ -100,8 +112,8 @@ To install the module, follow these steps:
    ```
    bin/magento maintenance:enable
    ```
-   
-3. Proceed with installation steps 6. - 10.
+
+3. Proceed with installation steps 6. - 13.
 
 ## Configuration
 
