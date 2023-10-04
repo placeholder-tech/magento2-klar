@@ -56,25 +56,22 @@ class ShippingBuilder extends AbstractApiRequestParamsBuilder
     public function buildFromSalesOrder(SalesOrderInterface $salesOrder): array
     {
         $shippingAddress = $salesOrder->getShippingAddress();
+        /* @var ShippingInterface $shipping */
+        $shipping = $this->shippingFactory->create();
 
-        if (!$shippingAddress) {
-            return [];
+        if ($shippingAddress) {
+          $shipping->setCity($shippingAddress->getCity());
+          $shipping->setProvinceOrState($shippingAddress->getRegion());
+          $shipping->setCountryCodeIso3Letter($this->getCountryCodeIso3Letter($shippingAddress->getCountryId()));
+          $shipping->setCountryCodeIso2Letter($shippingAddress->getCountryId());
+          $shipping->setZipOrPostalCode($shippingAddress->getPostcode());
         }
 
         $shippingAmount = $salesOrder->getShippingInclTax();
         $shippingTaxAmount = $salesOrder->getShippingTaxAmount();
         $shippingDiscountAmount = $salesOrder->getShippingDiscountAmount();
         $shippingAmountAfterTaxAndDiscount = $shippingAmount - $shippingTaxAmount - $shippingDiscountAmount;
-
-        /* @var ShippingInterface $shipping */
-        $shipping = $this->shippingFactory->create();
-
-        $shipping->setCity($shippingAddress->getCity());
-        $shipping->setProvinceOrState($shippingAddress->getRegion());
-        $shipping->setCountryCodeIso3Letter($this->getCountryCodeIso3Letter($shippingAddress->getCountryId()));
-        $shipping->setCountryCodeIso2Letter($shippingAddress->getCountryId());
         $shipping->setCurrencyCodeIso3Letter($salesOrder->getOrderCurrencyCode());
-        $shipping->setZipOrPostalCode($shippingAddress->getPostcode());
         $shipping->setProviderDescriptor($salesOrder->getShippingDescription());
         $shipping->setShippingTotalAmountBeforeTaxAndDiscounts((float)$shippingAmount);
         $shipping->setDiscounts($this->getDiscounts($salesOrder));
