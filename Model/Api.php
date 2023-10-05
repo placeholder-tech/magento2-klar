@@ -102,15 +102,26 @@ class Api implements ApiInterface
     /**
      * {@inheritDoc}
      */
-    public function validateAndSend(array $ids): bool
+    public function validateAndSend(array $ids): int
     {
+        $result = 0;
         $salesOrders = $this->getOrders($ids);
 
-        if ($salesOrders && $this->validate($salesOrders)) {
-            return $this->json($salesOrders);
+        if ($salesOrders) {
+            $this->setRequestData($salesOrders);
+        } else {
+            return $result;
         }
 
-        return false;
+        if ($this->validate($salesOrders)) {
+            $result = $this->json($salesOrders);
+        } elseif (count($ids) > 1) {
+            foreach ($ids as $id) {
+                $result += $this->validateAndSend([$id]);
+            }
+        }
+
+        return $result;
     }
 
     /**
@@ -130,10 +141,6 @@ class Api implements ApiInterface
                 __('Batch size must be less or equal %1, %2 provided.', self::BATCH_SIZE, count($salesOrders))
             );
             return false;
-        }
-
-        if (!$this->requestData) {
-            $this->setRequestData($salesOrders);
         }
 
         $this->getCurlClient()->post(
@@ -337,17 +344,13 @@ class Api implements ApiInterface
      *
      * @param SalesOrderInterface[] $salesOrders
      *
-     * @return bool
+     * @return int
      */
-    private function json(array $salesOrders): bool
+    private function json(array $salesOrders): int
     {
-        $result = false;
+        $result = 0;
         $orderIds = implode(', ', array_keys($salesOrders));
         $this->logger->info(__('Sending orders "#%1".', $orderIds));
-
-        if (!$this->requestData) {
-            $this->setRequestData($salesOrders);
-        }
 
         $this->getCurlClient()->post(
             $this->getRequestUrl(self::ORDERS_JSON_PATH, true),
@@ -356,7 +359,7 @@ class Api implements ApiInterface
 
         if ($this->getCurlClient()->getStatus() === self::STATUS_OK) {
             $this->logger->info(__('Orders "#%1" successfully sent to Klar.', $orderIds));
-            $result = true;
+            $result = count($orderIds);
         } else {
             $this->logger->info(__('Failed to send orders "#%1".', $orderIds));
         }

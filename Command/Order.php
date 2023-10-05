@@ -87,8 +87,11 @@ class Order extends Command
                 $result = $this->api->validateAndSend($ids);
             }
 
-            if ($result) {
+            if ($result == count($ids)) {
                 $output->writeln('<info>Orders sent successfully.</info>');
+            } elseif ($result > 0) {
+                $failed = count($ids) - $result;
+                $output->writeln("<error>{$result} orders successfully sent. {$failed} order failed.</error>");
             } else {
                 $output->writeln('<error>Sending orders failed. Please check logs for more information.</error>');
             }

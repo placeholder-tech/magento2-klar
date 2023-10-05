@@ -30,7 +30,7 @@ interface ApiInterface
      *
      * @param int[] $salesOrders
      *
-     * @return bool
+     * @return int
      */
-    public function validateAndSend(array $ids): bool;
+    public function validateAndSend(array $ids): int;
 }
