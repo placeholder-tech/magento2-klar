@@ -17,7 +17,7 @@ class OptionalIdentifiersBuilder extends AbstractApiRequestParamsBuilder
     private OptionalIdentifiersInterfaceFactory $optionalIdentifiersFactory;
 
     /**
-     * CustomerBuilder builder.
+     * OptionalIdentifiersBuilder builder.
      *
      * @param DateTimeFactory $dateTimeFactory
      * @param OptionalIdentifiersInterfaceFactory $optionalIdentifiersFactorybin
@@ -31,7 +31,7 @@ class OptionalIdentifiersBuilder extends AbstractApiRequestParamsBuilder
     }
 
     /**
-     * Build customer from sales order.
+     * Build OptionalIdentifiers from sales order.
      *
      * @param SalesOrderInterface $salesOrder
      *
