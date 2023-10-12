@@ -19,6 +19,7 @@ use ICT\Klar\Model\Builders\CustomerBuilder;
 use ICT\Klar\Model\Builders\LineItemsBuilder;
 use ICT\Klar\Model\Builders\RefundedLineItemsBuilder;
 use ICT\Klar\Model\Builders\ShippingBuilder;
+use ICT\Klar\Model\Builders\OptionalIdentifiersBuilder;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Intl\DateTimeFactory;
 use Magento\Sales\Api\Data\InvoiceInterface;
@@ -47,6 +48,7 @@ class ApiRequestParamsBuilder extends AbstractApiRequestParamsBuilder
     private ShippingBuilder $shippingBuilder;
     private CustomerBuilder $customerBuilder;
     private OptionalIdentifiersInterfaceFactory $optionalIdentifiersFactory;
+    private OptionalIdentifiersBuilder $optionalIdentifiersBuilder;
 
     /**
      * ParamsBuilder constructor.
@@ -59,6 +61,7 @@ class ApiRequestParamsBuilder extends AbstractApiRequestParamsBuilder
      * @param ShippingBuilder $shippingBuilder
      * @param CustomerBuilder $customerBuilder
      * @param OptionalIdentifiersInterfaceFactory $optionalIdentifiersFactory
+     * @param OptionalIdentifiersBuilder $optionalIdentifiersBuilder
      */
     public function __construct(
         DateTimeFactory $dateTimeFactory,
@@ -68,7 +71,8 @@ class ApiRequestParamsBuilder extends AbstractApiRequestParamsBuilder
         RefundedLineItemsBuilder $refundedLineItemsBuilder,
         ShippingBuilder $shippingBuilder,
         CustomerBuilder $customerBuilder,
-        OptionalIdentifiersInterfaceFactory $optionalIdentifiersFactory
+        OptionalIdentifiersInterfaceFactory $optionalIdentifiersFactory,
+        OptionalIdentifiersBuilder $optionalIdentifiersBuilder
     ) {
         parent::__construct($dateTimeFactory);
         $this->orderFactory = $orderFactory;
@@ -78,6 +82,7 @@ class ApiRequestParamsBuilder extends AbstractApiRequestParamsBuilder
         $this->shippingBuilder = $shippingBuilder;
         $this->customerBuilder = $customerBuilder;
         $this->optionalIdentifiersFactory = $optionalIdentifiersFactory;
+        $this->optionalIdentifiersBuilder = $optionalIdentifiersBuilder;
     }
 
     /**
@@ -116,7 +121,7 @@ class ApiRequestParamsBuilder extends AbstractApiRequestParamsBuilder
         $order->setRefundedLineItems($this->refundedLineItemsBuilder->buildFromSalesOrder($salesOrder));
         $order->setShipping($this->shippingBuilder->buildFromSalesOrder($salesOrder));
         $order->setCustomer($this->customerBuilder->buildFromSalesOrder($salesOrder));
-        $order->setOptionalIdentifiers($this->getOptionalIdentifiers());
+        $order->setOptionalIdentifiers($this->optionalIdentifiersBuilder->buildFromSalesOrder($salesOrder));
 
         return $this->snakeToCamel($order->toArray());
     }
