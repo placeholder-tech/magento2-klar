@@ -44,7 +44,7 @@ class OrderPublisher
     /**
      * @return int[]
      */
-    public function getAllIds(?DateTime $fromDate = null): array
+    public function getAllIds(?DateTime $fromDate = null, ?DateTime $toDate = null): array
     {
         $bind = [];
 
@@ -54,6 +54,10 @@ class OrderPublisher
         if ($fromDate) {
             $select->where('e.created_at >= :from');
             $bind = ['from' => $fromDate->format('Y-m-d 00:00:00')];
+        }
+        if($toDate) {
+            $select->where('e.created_at <= :to');
+            $bind = array_merge($bind, ['to' => $toDate->format('Y-m-d 23:59:59')]);
         }
 
         $rows = $this->connection->fetchAssoc($select, $bind);

@@ -130,11 +130,80 @@ To enable Magento 2 Klar integration in the Magento admin panel, follow these st
 
 ![Configuration](docs/configuration.png)
 
+For the latest configuration parameters please refer to the [Klar API documentation](https://klar.gitbook.io/klar-api/). 
+
+#### API URL
+
+For live: 
+
+```
+   https://open-api.durchsichtig.xyz
+```
+
+#### API Version
+
+```
+   12.2022
+```
+
+#### API Token
+
+The token can be found in Klar in the **Klar Api** data source created for this shop.
+
+![Token](docs/token.png)
+
 ## Usage
 
-Once the module is installed and configured, you can use it to centralize your store's data and gain insights into its
-performance using Klar's powerful reporting and analytics tools. There are no extra actions needed, integration is
-working automatically.
+After the successful installation this module sends all orders to Klar after they've been placed in the Magento store. 
+
+If you want to re-export certain orders or export the whole order history you can use the following CLI commands:
+
+### CLI Command
+
+command 
+```
+bin/magento klar:order <ids> [<from-date>] [<to-date]
+```
+
+#### ids (required)
+
+Either ```all``` or a comma separated list or order ids e.g. ```123,124,125```.
+
+```all``` exports all orders in the store.
+
+Examples: 
+
+```
+bin/magento klar:order all
+```
+
+```
+bin/magento klar:order 000000001,000000002,000000003
+```
+
+#### from-date (optional) 
+
+Limits the export of ```all``` history with a starting date. The date has to be provided in the format YYYY-MM-DD 
+
+Example:
+
+```
+bin/magento klar:order all 2023-01-01
+```
+
+#### to-date (optional)
+
+Limits the export of ```all``` history with an end date. The date has to be provided in the format YYYY-MM-DD
+
+Example:
+
+```
+bin/magento klar:order all 2023-01-01 2023-06-01
+```
+
+"Export all orders from the 1st of January 2023 to the 1st of June 2023."
+
+The range start and end are included.
 
 ## Support
 
