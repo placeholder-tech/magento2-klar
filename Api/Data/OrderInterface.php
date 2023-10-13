@@ -336,16 +336,16 @@ interface OrderInterface
     /**
      * Getter for OptionalIdentifiers.
      *
-     * @return \ICT\Klar\Api\Data\OptionalIdentifiersInterface|null
+     * @return array|null
      */
-    public function getOptionalIdentifiers(): ?\ICT\Klar\Api\Data\OptionalIdentifiersInterface;
+    public function getOptionalIdentifiers(): ?array;
 
     /**
      * Setter for OptionalIdentifiers.
      *
-     * @param \ICT\Klar\Api\Data\OptionalIdentifiersInterface $optionalIdentifiers
+     * @param array $optionalIdentifiers
      *
      * @return void
      */
-    public function setOptionalIdentifiers(\ICT\Klar\Api\Data\OptionalIdentifiersInterface $optionalIdentifiers): void;
+    public function setOptionalIdentifiers(array $optionalIdentifiers): void;
 }
