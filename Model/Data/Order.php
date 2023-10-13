@@ -437,9 +437,9 @@ class Order extends DataObject implements OrderInterface
     /**
      * Getter for OptionalIdentifiers.
      *
-     * @return OptionalIdentifiersInterface|null
+     * @return array|null
      */
-    public function getOptionalIdentifiers(): ?OptionalIdentifiersInterface
+    public function getOptionalIdentifiers(): ?array
     {
         return $this->getData(self::OPTIONAL_IDENTIFIERS);
     }
@@ -447,11 +447,11 @@ class Order extends DataObject implements OrderInterface
     /**
      * Setter for OptionalIdentifiers.
      *
-     * @param OptionalIdentifiersInterface $optionalIdentifiers
+     * @param array $optionalIdentifiers
      *
      * @return void
      */
-    public function setOptionalIdentifiers(OptionalIdentifiersInterface $optionalIdentifiers): void
+    public function setOptionalIdentifiers(array $optionalIdentifiers): void
     {
         $this->setData(self::OPTIONAL_IDENTIFIERS, $optionalIdentifiers);
     }
