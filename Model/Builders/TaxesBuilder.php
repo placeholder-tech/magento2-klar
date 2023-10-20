@@ -67,8 +67,7 @@ class TaxesBuilder extends AbstractApiRequestParamsBuilder
                     continue;
                 }
 
-                $itemPrice = (float)$salesOrderItem->getPrice() - (float)$salesOrderItem->getDiscountAmount();
-                $taxAmount = $itemPrice - ($itemPrice / (1+ $taxRate));
+                $taxAmount = (float)$salesOrderItem->getTaxAmount();
             } else {
                 $taxAmount = (float)$taxItem['real_amount'];
             }
