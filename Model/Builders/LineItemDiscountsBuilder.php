@@ -62,7 +62,7 @@ class LineItemDiscountsBuilder extends AbstractApiRequestParamsBuilder
             foreach ($ruleIds as $ruleId) {
                 $discount = $this->buildRuleDiscount(
                     (int)$ruleId,
-                    (float)$salesOrderItem->getPriceInclTax()
+                    (float)$salesOrderItem->getPrice()
                 );
 
                 if (!empty($discount)) {
@@ -71,7 +71,7 @@ class LineItemDiscountsBuilder extends AbstractApiRequestParamsBuilder
             }
         }
 
-        $price = (float)$salesOrderItem->getPriceInclTax();
+        $price = (float)$salesOrderItem->getPrice();
         $originalPrice = (float)$salesOrderItem->getOriginalPrice();
 
         if ($price < $originalPrice) {
