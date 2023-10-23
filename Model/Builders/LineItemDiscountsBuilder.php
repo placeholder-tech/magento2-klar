@@ -71,8 +71,8 @@ class LineItemDiscountsBuilder extends AbstractApiRequestParamsBuilder
             }
         }
 
-        $price = (float)$salesOrderItem->getPriceInclTax();
-        $originalPrice = (float)$salesOrderItem->getOriginalPrice();
+        $price = round((float)$salesOrderItem->getPriceInclTax(),2);
+        $originalPrice = round((float)$salesOrderItem->getOriginalPrice(),2);
 
         if ($price < $originalPrice) {
             $discounts[] = $this->buildSpecialPriceDiscount($price, $originalPrice);
