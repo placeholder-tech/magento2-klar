@@ -202,6 +202,7 @@ class Api implements ApiInterface
     private function getHeaders(): array
     {
         return [
+            'Expect' => '',
             'Content-Type' => 'application/json',
             'Authorization' => 'Bearer ' . $this->getApiToken(),
         ];
