@@ -68,7 +68,7 @@ class LineItemsBuilder extends AbstractApiRequestParamsBuilder
             $productVariant = $this->getProductVariant($salesOrderItem);
             $productBrand = false;
             $categoryName = $this->getCategoryName($salesOrderItem);
-            $totalBeforeTaxesAndDiscounts = $salesOrderItem->getBaseOriginalPrice() * $salesOrderItem->getQtyOrdered();
+            $totalBeforeTaxesAndDiscounts = $salesOrderItem->getOriginalPrice() * $salesOrderItem->getQtyOrdered();
             $weightInGrams = 0;
 
             if ($product) {
@@ -97,7 +97,7 @@ class LineItemsBuilder extends AbstractApiRequestParamsBuilder
             }
 
             $lineItem->setProductCogs((float)$salesOrderItem->getBaseCost());
-            $lineItem->setProductGmv((float)$salesOrderItem->getBaseOriginalPrice());
+            $lineItem->setProductGmv((float)$salesOrderItem->getOriginalPrice());
             $lineItem->setProductShippingWeightInGrams($weightInGrams);
             $lineItem->setSku($salesOrderItem->getSku());
             $lineItem->setQuantity((float)$salesOrderItem->getQtyOrdered());
